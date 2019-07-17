@@ -185,48 +185,15 @@ const DAIAbi = [
   }
 ]
 
-
-
-
-// dagger.on(`latest:log/${DAIAddress}/filter/${transferTopic}/#`, function(result) {
-// 	console.log(result);
-
-
-// 	triggerFlow('whale-tweet-dai-transfer', {
-// 		symbol: 'DAI',
-// 		amount: result.amount,
-// 		from: result.from
-// 	})
-// })
-
-
 const web3Contract = new web3.eth.Contract(DAIAbi, DAIAddress)
 const daggerContract = dagger.contract(web3Contract)
 
-// Get subscription filter
-// const transactionFilter = daggerContract.events.Approval({
-// 	room: "latest",
-// 	filter: {
-// 		from: '0x869eC00FA1DC112917c781942Cc01c68521c415e'
-// 	}
-// });
-
-// // Start watching logs
-// transactionFilter.watch((log) => {
-// 	console.log('New DAI Transfer')
-// 	console.log(log)
-//   // log.returnValues.value => 100 GNT
-//   // log.returnValues.from => '0x12345678...'
-//   // log.returnValues.to => address which value has been transferred to
-// });
-
-
-
-// Listen for every Golem token transfer (notice `#` at the end)
+// Listen for every a token transfer occurs
 dagger.on(`confirmed:log/${DAIAddress}/filter/${transferTopic}/#`, result => {
-  console.log('New DAI Transfer')
   const tokenAmount = getTransferAmountFromLogs(result)
   console.log(`Amount: ${tokenAmount}`)
+
+  triggerFlow('whale-dai-tweeting', {amount: tokenAmount})
 })
 
 function getTransferAmountFromLogs(logData) {
@@ -263,7 +230,7 @@ async function triggerFlow(flowName, params) {
 	console.log(`Flow triggered: ${flowName}`)
 	let flowModel = getFlowModel(flowName)
 
-	// let res = sendMessage(flowModel, params)
+	let res = sendMessage(flowModel, params)
 	console.log(`Flow message sent: ${flowName}`)
 
 	return res
@@ -274,6 +241,29 @@ function getFlowModel(flowName) {
 
 	switch(flowName) {
 		case 'whale-dai-tweeting':
+      flowModel = [
+        {
+          "task_type": "stay-stop-decision",
+          "inputs": {
+            "rule": {
+              "conditions": {
+                "priority": 1,
+                "all": [
+                  { "operator": "greaterThanInclusive", "value": 10000, "fact": "amount" }
+                ]
+              },
+              "priority": 1,
+              "event": {
+                "type": "success",
+                "params": {
+                  "decision": true
+                }
+              }
+            }
+          }
+        }
+      ]
+
 		break;
 
 		default:
