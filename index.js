@@ -4,7 +4,12 @@ const Dagger = require("eth-dagger")
 const BigNumber = require("bignumber.js")
 
 const AWS = require('aws-sdk')
-AWS.config.update({region: 'us-east-1'})
+
+AWS.config.update({
+  region: 'us-east-1',
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+})
 
 // connect to Dagger ETH main network (network id: 1) over web socket
 const dagger = new Dagger("wss://mainnet.dagger.matic.network") // dagger server
