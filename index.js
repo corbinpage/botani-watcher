@@ -11,8 +11,10 @@ AWS.config.update({
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
 })
 
+const host = process.env.YOUR_HOST || '0.0.0.0'
+
 // connect to Dagger ETH main network (network id: 1) over web socket
-const options = [{ host: '0.0.0.0', port: process.env.PORT }]
+const options = [{ host: host, port: process.env.PORT }]
 const dagger = new Dagger(
   "wss://mainnet.dagger.matic.network", 
   options
@@ -324,7 +326,9 @@ function getFlowModel(flowName) {
 }
 
 async function sendMessage(flowModel, params) {
-	const sns = new AWS.SNS({apiVersion: '2010-03-31'})
+	const sns = new AWS.SNS(
+    {apiVersion: '2010-03-31'}
+  )
   const queueArn = `arn:aws:sns:us-east-1:061031305521:${flowModel[0]["task_type"]}`
 	const message = {
 		params: params,
