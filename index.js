@@ -211,17 +211,17 @@ dagger.on(`confirmed:log/${DAIAddress}/filter/${transferTopic}/#`, result => {
 })
 
 // Listen for every MKR token transfer occurs
-dagger.on(`confirmed:log/${MKRAddress}/filter/${transferTopic}/#`, result => {
-  const tokenSymbol = 'MKR'
-  const tokenAmount = getTransferAmountFromLogs(result)
-  console.log(`Amount: ${tokenAmount} ${tokenSymbol}`)
+// dagger.on(`confirmed:log/${MKRAddress}/filter/${transferTopic}/#`, result => {
+//   const tokenSymbol = 'MKR'
+//   const tokenAmount = getTransferAmountFromLogs(result)
+//   console.log(`Amount: ${tokenAmount} ${tokenSymbol}`)
 
-  triggerFlow('whale-mkr-tweeting', {
-    amount: tokenAmount,
-    tokenSymbol: tokenSymbol,
-    transactionHash: result.transactionHash
-  })
-})
+//   triggerFlow('whale-mkr-tweeting', {
+//     amount: tokenAmount,
+//     tokenSymbol: tokenSymbol,
+//     transactionHash: result.transactionHash
+//   })
+// })
 
 function getTransferAmountFromLogs(logData) {
   const inputs = [
