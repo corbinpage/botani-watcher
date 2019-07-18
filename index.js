@@ -10,7 +10,7 @@ AWS.config.update({region: 'us-east-1'})
 const dagger = new Dagger("wss://mainnet.dagger.matic.network") // dagger server
 
 const DAIAddress = '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359'
-const MKRAddress = '0xa74476443119a942de498590fe1f2454d7d4ac0d'
+const MKRAddress = '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2'
 const GNTAddress = '0xa74476443119a942de498590fe1f2454d7d4ac0d'
 const transferTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
 
@@ -188,12 +188,30 @@ const DAIAbi = [
 const web3Contract = new web3.eth.Contract(DAIAbi, DAIAddress)
 const daggerContract = dagger.contract(web3Contract)
 
-// Listen for every a token transfer occurs
+// Listen for every DAI token transfer occurs
 dagger.on(`confirmed:log/${DAIAddress}/filter/${transferTopic}/#`, result => {
+  const tokenSymbol = 'DAI'
   const tokenAmount = getTransferAmountFromLogs(result)
-  console.log(`Amount: ${tokenAmount}`)
+  console.log(`Amount: ${tokenAmount} ${tokenSymbol}`)
 
-  triggerFlow('whale-dai-tweeting', {amount: tokenAmount})
+  triggerFlow('whale-dai-tweeting', {
+    amount: tokenAmount,
+    tokenSymbol: tokenSymbol,
+    transactionHash: result.transactionHash
+  })
+})
+
+// Listen for every MKR token transfer occurs
+dagger.on(`confirmed:log/${MKRAddress}/filter/${transferTopic}/#`, result => {
+  const tokenSymbol = 'MKR'
+  const tokenAmount = getTransferAmountFromLogs(result)
+  console.log(`Amount: ${tokenAmount} ${tokenSymbol}`)
+
+  triggerFlow('whale-mkr-tweeting', {
+    amount: tokenAmount,
+    tokenSymbol: tokenSymbol,
+    transactionHash: result.transactionHash
+  })
 })
 
 function getTransferAmountFromLogs(logData) {
@@ -227,11 +245,11 @@ function getTransferAmountFromLogs(logData) {
 }
 
 async function triggerFlow(flowName, params) {
-	console.log(`Flow triggered: ${flowName}`)
+	// console.log(`Flow triggered: ${flowName}`)
 	let flowModel = getFlowModel(flowName)
 
 	let res = sendMessage(flowModel, params)
-	console.log(`Flow message sent: ${flowName}`)
+	// console.log(`Flow message sent: ${flowName}`)
 
 	return res
 }
@@ -240,10 +258,10 @@ function getFlowModel(flowName) {
 	let flowModel = []
 
 	switch(flowName) {
-		case 'whale-dai-tweeting':
+    case 'whale-dai-tweeting':
       flowModel = [
         {
-          "task_type": "stay-stop-decision",
+          "task_type": "whale-dai-tweeting",
           "inputs": {
             "rule": {
               "conditions": {
@@ -263,7 +281,30 @@ function getFlowModel(flowName) {
           }
         }
       ]
-
+    break;
+		case 'whale-mkr-tweeting':
+      flowModel = [
+        {
+          "task_type": "whale-mkr-tweeting",
+          "inputs": {
+            "rule": {
+              "conditions": {
+                "priority": 1,
+                "all": [
+                  { "operator": "greaterThanInclusive", "value": 20, "fact": "amount" }
+                ]
+              },
+              "priority": 1,
+              "event": {
+                "type": "success",
+                "params": {
+                  "decision": true
+                }
+              }
+            }
+          }
+        }
+      ]
 		break;
 
 		default:
@@ -275,6 +316,7 @@ function getFlowModel(flowName) {
 
 async function sendMessage(flowModel, params) {
 	const sns = new AWS.SNS({apiVersion: '2010-03-31'})
+  const queueArn = `arn:aws:sns:us-east-1:061031305521:${flowModel[0]["task_type"]}`
 	const message = {
 		params: params,
 		flowModel: flowModel,
@@ -283,17 +325,7 @@ async function sendMessage(flowModel, params) {
 
 	let snsParams = {
 	  Message: JSON.stringify(message),
-	  TopicArn: 'arn:aws:sns:us-east-1:061031305521:botani',
-	  MessageAttributes: {
-	    'task_type': {
-	      DataType: 'String',
-	      StringValue: message.flowModel[0]["task_type"]
-	    },
-	    'task_id': {
-	      DataType: 'Number',
-	      StringValue: '0'
-	    }
-    }
+	  TopicArn: queueArn
 	}
 
 	var res = await sns.publish(snsParams).promise()
