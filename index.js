@@ -15,7 +15,8 @@ AWS.config.update({
 const dagger = new Dagger(
   "wss://mainnet.dagger.matic.network", 
   {
-    port: process.env.PORT || 3000
+    port: process.env.PORT || 3000,
+    host: '0.0.0.0'
   }
 ) // dagger server
 
