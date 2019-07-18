@@ -12,11 +12,10 @@ AWS.config.update({
 })
 
 // connect to Dagger ETH main network (network id: 1) over web socket
+const options = [{ port: process.env.PORT }]
 const dagger = new Dagger(
   "wss://mainnet.dagger.matic.network", 
-  {
-    port: process.env.PORT
-  }
+  options
 ) // dagger server
 
 const DAIAddress = '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359'
