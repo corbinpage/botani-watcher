@@ -201,17 +201,17 @@ const web3Contract = new web3.eth.Contract(DAIAbi, DAIAddress)
 const daggerContract = dagger.contract(web3Contract)
 
 // Listen for every DAI token transfer occurs
-// dagger.on(`confirmed:log/${DAIAddress}/filter/${transferTopic}/#`, result => {
-//   const tokenSymbol = 'DAI'
-//   const tokenAmount = getTransferAmountFromLogs(result)
-//   console.log(`Amount: ${tokenAmount} ${tokenSymbol}`)
+dagger.on(`confirmed:log/${DAIAddress}/filter/${transferTopic}/#`, result => {
+  const tokenSymbol = 'DAI'
+  const tokenAmount = getTransferAmountFromLogs(result)
+  console.log(`Amount: ${tokenAmount} ${tokenSymbol}`)
 
-//   triggerFlow('whale-dai-tweeting', {
-//     amount: tokenAmount,
-//     tokenSymbol: tokenSymbol,
-//     transactionHash: result.transactionHash
-//   })
-// })
+  triggerFlow('whale-dai-tweeting', {
+    amount: tokenAmount,
+    tokenSymbol: tokenSymbol,
+    transactionHash: result.transactionHash
+  })
+})
 
 // // Listen for every MKR token transfer occurs
 // dagger.on(`confirmed:log/${MKRAddress}/filter/${transferTopic}/#`, result => {
@@ -230,11 +230,6 @@ const daggerContract = dagger.contract(web3Contract)
 // dagger.on("latest:block", function(result) {
 //   console.log("New block created: ", result);
 // });
-
-// get new block as soon as it gets created
-dagger.on("latest:tx/0x5d81ec4277094e3d3d4cc1ff49d05902a1adc2df7e74dcd63661fa52d8a7f03b", function(result) {
-  console.log("New block created: ", result);
-});
 
 function getTransferAmountFromLogs(logData) {
   const inputs = [
