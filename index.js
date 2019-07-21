@@ -11,8 +11,8 @@ AWS.config.update({
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
 })
 
-const host = process.env.YOUR_HOST || '0.0.0.0'
-const host = process.env.PORT || 8000
+const host = process.env.HOST || '0.0.0.0'
+const port = process.env.PORT || 8000
 
 // connect to Dagger ETH main network (network id: 1) over web socket
 const options = [{ host: host, port: port }]
