@@ -12,9 +12,10 @@ AWS.config.update({
 })
 
 const host = process.env.YOUR_HOST || '0.0.0.0'
+const host = process.env.PORT || 8000
 
 // connect to Dagger ETH main network (network id: 1) over web socket
-const options = [{ host: host, port: process.env.PORT }]
+const options = [{ host: host, port: port }]
 const dagger = new Dagger(
   "wss://mainnet.dagger.matic.network", 
   options
@@ -200,19 +201,19 @@ const web3Contract = new web3.eth.Contract(DAIAbi, DAIAddress)
 const daggerContract = dagger.contract(web3Contract)
 
 // Listen for every DAI token transfer occurs
-dagger.on(`confirmed:log/${DAIAddress}/filter/${transferTopic}/#`, result => {
-  const tokenSymbol = 'DAI'
-  const tokenAmount = getTransferAmountFromLogs(result)
-  console.log(`Amount: ${tokenAmount} ${tokenSymbol}`)
+// dagger.on(`confirmed:log/${DAIAddress}/filter/${transferTopic}/#`, result => {
+//   const tokenSymbol = 'DAI'
+//   const tokenAmount = getTransferAmountFromLogs(result)
+//   console.log(`Amount: ${tokenAmount} ${tokenSymbol}`)
 
-  triggerFlow('whale-dai-tweeting', {
-    amount: tokenAmount,
-    tokenSymbol: tokenSymbol,
-    transactionHash: result.transactionHash
-  })
-})
+//   triggerFlow('whale-dai-tweeting', {
+//     amount: tokenAmount,
+//     tokenSymbol: tokenSymbol,
+//     transactionHash: result.transactionHash
+//   })
+// })
 
-// Listen for every MKR token transfer occurs
+// // Listen for every MKR token transfer occurs
 // dagger.on(`confirmed:log/${MKRAddress}/filter/${transferTopic}/#`, result => {
 //   const tokenSymbol = 'MKR'
 //   const tokenAmount = getTransferAmountFromLogs(result)
@@ -224,6 +225,16 @@ dagger.on(`confirmed:log/${DAIAddress}/filter/${transferTopic}/#`, result => {
 //     transactionHash: result.transactionHash
 //   })
 // })
+
+// get new block as soon as it gets created
+// dagger.on("latest:block", function(result) {
+//   console.log("New block created: ", result);
+// });
+
+// get new block as soon as it gets created
+dagger.on("latest:tx/0x5d81ec4277094e3d3d4cc1ff49d05902a1adc2df7e74dcd63661fa52d8a7f03b", function(result) {
+  console.log("New block created: ", result);
+});
 
 function getTransferAmountFromLogs(logData) {
   const inputs = [
