@@ -17,7 +17,8 @@ const port = process.env.PORT || 8000
 // connect to Dagger ETH main network (network id: 1) over web socket
 const options = [{ host: host, port: port }]
 const dagger = new Dagger(
-  "wss://mainnet.dagger.matic.network", 
+  // "wss://mainnet.dagger.matic.network", 
+  "mqtts://mainnet.dagger.matic.network", 
   options
 ) // dagger server
 
