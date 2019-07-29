@@ -230,6 +230,7 @@ dagger.on(`confirmed:log/${DAIAddress}/filter/${transferTopic}/#`, result => {
 // dagger.on("latest:block", function(result) {
 //   console.log("New block created: ", result);
 // });
+//
 
 function getTransferAmountFromLogs(logData) {
   const inputs = [
