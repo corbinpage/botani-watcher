@@ -15,17 +15,19 @@ AWS.config.update({
 const host = process.env.HOST || '0.0.0.0'
 const port = process.env.PORT || 8000
 
-// const server = express()
-//   .use((req, res) => res.send('Hello World!') )
-//   .listen(port, () => console.log(`HTTP listening on ${ port }`));
-
 // connect to Dagger ETH main network (network id: 1) over web socket
 const options = [{ host: host, port: port }]
-// const options = []
+
 const dagger = new Dagger(
   "wss://mainnet.dagger.matic.network", 
   options
 ) // dagger server
+
+const server = express()
+  .use((req, res) => res.send('Hello World!') )
+  .listen(port, () => console.log(`HTTP listening on ${ port }`));
+
+
 
 const DAIAddress = '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359'
 const MKRAddress = '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2'
