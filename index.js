@@ -2,7 +2,7 @@ const Web3 = require("web3")
 const web3 = new Web3()
 const Dagger = require("eth-dagger")
 const BigNumber = require("bignumber.js")
-const express = require('express');
+// const express = require('express');
 
 const AWS = require('aws-sdk')
 
@@ -15,15 +15,16 @@ AWS.config.update({
 const host = process.env.HOST || '0.0.0.0'
 const port = process.env.PORT || 8000
 
-const server = express()
-  .use((req, res) => res.send('Hello World!') )
-  .listen(port, () => console.log(`HTTP listening on ${ port }`));
+// const server = express()
+//   .use((req, res) => res.send('Hello World!') )
+//   .listen(port, () => console.log(`HTTP listening on ${ port }`));
 
 // connect to Dagger ETH main network (network id: 1) over web socket
-const options = [{ host: host, port: port }]
+// const options = [{ host: host, port: port }]
+const options = []
 const dagger = new Dagger(
-  // "wss://mainnet.dagger.matic.network", 
-  "mqtts://mainnet.dagger.matic.network", 
+  "wss://mainnet.dagger.matic.network", 
+  // "mqtts://mainnet.dagger.matic.network", 
   options
 ) // dagger server
 
