@@ -3,6 +3,7 @@ const web3 = new Web3()
 const Dagger = require("eth-dagger")
 const BigNumber = require("bignumber.js")
 const express = require('express');
+const Twit = require("twit");
 
 const AWS = require('aws-sdk')
 
@@ -22,6 +23,13 @@ const dagger = new Dagger(
   "wss://mainnet.dagger.matic.network", 
   options
 ) // dagger server
+
+// const T = new Twit({
+//   consumer_key: process.env.TWITTER_CONSUMER_KEY,
+//   consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+//   access_token: process.env.TWITTER_ACCESS_TOKEN,
+//   access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
+// })
 
 const server = express()
   .use((req, res) => res.send('Hello World!') )
@@ -45,7 +53,7 @@ dagger.on(`confirmed:log/${DAIAddress}/filter/${transferTopic}/#`, result => {
   })
 })
 
-// // Listen for every MKR token transfer occurs
+// Listen for every MKR token transfer occurs
 dagger.on(`confirmed:log/${MKRAddress}/filter/${transferTopic}/#`, result => {
   const tokenSymbol = 'MKR'
   const tokenAmount = getTransferAmountFromLogs(result)
@@ -57,6 +65,18 @@ dagger.on(`confirmed:log/${MKRAddress}/filter/${transferTopic}/#`, result => {
     transactionHash: result.transactionHash
   })
 })
+
+// Listen for @CompoundBot tweets
+// var stream = T.stream('statuses/filter', {
+//   // track: '#apple',
+//   // "exact phrase match": "Borrow / Supply Rates (APR) as of block ",
+//   from: 'DeFiWhale'
+
+// })
+
+// stream.on('tweet', function (tweet) {
+//   console.log(tweet)
+// })
 
 function getTransferAmountFromLogs(logData) {
   const inputs = [
@@ -111,7 +131,7 @@ function getFlowModel(flowName) {
               "conditions": {
                 "priority": 1,
                 "all": [
-                  { "operator": "greaterThanInclusive", "value": 10000, "fact": "amount" }
+                  { "operator": "greaterThanInclusive", "value": 50000, "fact": "amount" }
                 ]
               },
               "priority": 1,
