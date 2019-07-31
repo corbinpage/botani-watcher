@@ -77,7 +77,7 @@ var stream = T.stream('statuses/filter', {
 stream.on('tweet', function (tweet) {
   console.log(tweet)
 
-  triggerFlow('compound-bot-tweet', {
+  triggerFlow('retweet-tweet', {
     tweet: tweet
   })
 
@@ -175,27 +175,11 @@ function getFlowModel(flowName) {
         }
       ]
     break;
-		case 'compound-bot-tweet':
+		case 'retweet-tweet':
       flowModel = [
         {
-          "task_type": "compound-bot-tweet",
-          "inputs": {
-            "rule": {
-              "conditions": {
-                "priority": 1,
-                "all": [
-                  { "operator": "greaterThanInclusive", "value": 20, "fact": "amount" }
-                ]
-              },
-              "priority": 1,
-              "event": {
-                "type": "success",
-                "params": {
-                  "decision": true
-                }
-              }
-            }
-          }
+          "task_type": "retweet-tweet",
+          "inputs": {}
         }
       ]
 		break;
