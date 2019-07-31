@@ -19,17 +19,19 @@ const port = process.env.PORT || 8000
 // connect to Dagger ETH main network (network id: 1) over web socket
 const options = [{ host: host, port: port }]
 
+// dagger server
 const dagger = new Dagger(
   "wss://mainnet.dagger.matic.network", 
   options
-) // dagger server
+) 
 
-// const T = new Twit({
-//   consumer_key: process.env.TWITTER_CONSUMER_KEY,
-//   consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
-//   access_token: process.env.TWITTER_ACCESS_TOKEN,
-//   access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
-// })
+// Twitter Client
+const T = new Twit({
+  consumer_key: process.env.TWITTER_CONSUMER_KEY,
+  consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+  access_token: process.env.TWITTER_ACCESS_TOKEN,
+  access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
+})
 
 const server = express()
   .use((req, res) => res.send('Hello World!') )
@@ -67,16 +69,19 @@ dagger.on(`confirmed:log/${MKRAddress}/filter/${transferTopic}/#`, result => {
 })
 
 // Listen for @CompoundBot tweets
-// var stream = T.stream('statuses/filter', {
-//   // track: '#apple',
-//   // "exact phrase match": "Borrow / Supply Rates (APR) as of block ",
-//   from: 'DeFiWhale'
+var stream = T.stream('statuses/filter', {
+  follow: ['1067343515854622720']
+  // track: ['bananas', 'oranges', 'strawberries']
+})
 
-// })
+stream.on('tweet', function (tweet) {
+  console.log(tweet)
 
-// stream.on('tweet', function (tweet) {
-//   console.log(tweet)
-// })
+  triggerFlow('compound-bot-tweet', {
+    tweet: tweet
+  })
+
+})
 
 function getTransferAmountFromLogs(logData) {
   const inputs = [
@@ -146,10 +151,34 @@ function getFlowModel(flowName) {
         }
       ]
     break;
-		case 'whale-mkr-tweeting':
+    case 'whale-mkr-tweeting':
       flowModel = [
         {
           "task_type": "whale-mkr-tweeting",
+          "inputs": {
+            "rule": {
+              "conditions": {
+                "priority": 1,
+                "all": [
+                  { "operator": "greaterThanInclusive", "value": 20, "fact": "amount" }
+                ]
+              },
+              "priority": 1,
+              "event": {
+                "type": "success",
+                "params": {
+                  "decision": true
+                }
+              }
+            }
+          }
+        }
+      ]
+    break;
+		case 'compound-bot-tweet':
+      flowModel = [
+        {
+          "task_type": "compound-bot-tweet",
           "inputs": {
             "rule": {
               "conditions": {
