@@ -70,7 +70,7 @@ dagger.on(`confirmed:log/${MKRAddress}/filter/${transferTopic}/#`, result => {
 
 // Listen for @CompoundBot tweets
 var stream = T.stream('statuses/filter', {
-  follow: ['1067343515854622720']
+  follow: ['1067343515854622720', '1020011875642245120']
   // track: ['bananas', 'oranges', 'strawberries']
 })
 
