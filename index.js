@@ -43,7 +43,7 @@ const USDCAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
 const GNTAddress = '0xa74476443119a942de498590fe1f2454d7d4ac0d'
 const transferTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
 
-// Listen for every DAI token transfer occurs
+Listen for every DAI token transfer occurs
 dagger.on(`confirmed:log/${DAIAddress}/filter/${transferTopic}/#`, result => {
   const tokenSymbol = 'DAI'
   const tokenAmount = getTransferAmountFromLogs(result)
@@ -84,20 +84,23 @@ dagger.on(`confirmed:log/${USDCAddress}/filter/${transferTopic}/#`, result => {
 
 let compoundBotUserId = '1067343515854622720'
 let makerBotUserId = '1020011875642245120'
+let andrewYangUserId = '2228878592'
 
 // Listen for @CompoundBot tweets
 var stream = T.stream('statuses/filter', {
   follow: [compoundBotUserId, makerBotUserId]
-  // track: ['bananas', 'oranges', 'strawberries']
 })
 
 stream.on('tweet', function (tweet) {
-  console.log(tweet)
+  let isReply = !!tweet.in_reply_to_status_id_str
 
-  triggerFlow('retweet-tweet', {
-    tweet: tweet
-  })
+  if(!isReply) {
+    console.log(tweet)
 
+    triggerFlow('retweet-tweet', {
+      tweet: tweet
+    }) 
+  }
 })
 
 function getTransferAmountFromLogs(logData) {
