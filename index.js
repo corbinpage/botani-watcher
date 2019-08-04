@@ -39,6 +39,7 @@ const server = express()
 
 const DAIAddress = '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359'
 const MKRAddress = '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2'
+const USDAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
 const GNTAddress = '0xa74476443119a942de498590fe1f2454d7d4ac0d'
 const transferTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
 
@@ -68,9 +69,12 @@ dagger.on(`confirmed:log/${MKRAddress}/filter/${transferTopic}/#`, result => {
   })
 })
 
+let compoundBotUserId = '1067343515854622720'
+let makerBotUserId = '1020011875642245120'
+
 // Listen for @CompoundBot tweets
 var stream = T.stream('statuses/filter', {
-  follow: ['1067343515854622720', '1020011875642245120']
+  follow: [compoundBotUserId, makerBotUserId]
   // track: ['bananas', 'oranges', 'strawberries']
 })
 
@@ -130,7 +134,7 @@ function getFlowModel(flowName) {
     case 'whale-dai-tweeting':
       flowModel = [
         {
-          "task_type": "whale-dai-tweeting",
+          "task_type": "whale-token-transfer-tweet",
           "inputs": {
             "rule": {
               "conditions": {
@@ -154,7 +158,7 @@ function getFlowModel(flowName) {
     case 'whale-mkr-tweeting':
       flowModel = [
         {
-          "task_type": "whale-mkr-tweeting",
+          "task_type": "whale-token-transfer-tweet",
           "inputs": {
             "rule": {
               "conditions": {
