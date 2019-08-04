@@ -43,7 +43,7 @@ const USDCAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
 const GNTAddress = '0xa74476443119a942de498590fe1f2454d7d4ac0d'
 const transferTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
 
-Listen for every DAI token transfer occurs
+// Listen for every DAI token transfer occurs
 dagger.on(`confirmed:log/${DAIAddress}/filter/${transferTopic}/#`, result => {
   const tokenSymbol = 'DAI'
   const tokenAmount = getTransferAmountFromLogs(result)
