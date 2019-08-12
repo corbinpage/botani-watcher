@@ -72,7 +72,7 @@ dagger.on(`confirmed:log/${MKRAddress}/filter/${transferTopic}/#`, result => {
 // Listen for every USDC token transfer occurs
 dagger.on(`confirmed:log/${USDCAddress}/filter/${transferTopic}/#`, result => {
   const tokenSymbol = 'USDC'
-  const tokenAmount = getTransferAmountFromLogs(result)
+  const tokenAmount = getTransferAmountFromLogs(result, 6)
   console.log(`Amount: ${tokenAmount} ${tokenSymbol}`)
 
   triggerFlow('whale-token-transfer-tweet', {
@@ -103,7 +103,7 @@ stream.on('tweet', function (tweet) {
   }
 })
 
-function getTransferAmountFromLogs(logData) {
+function getTransferAmountFromLogs(logData, decimals=18) {
   const inputs = [
     {
       indexed: true,
@@ -128,7 +128,7 @@ function getTransferAmountFromLogs(logData) {
   const output = web3.eth.abi.decodeLog(inputs, hexString, topics)
 
   const bigNumberValue = new BigNumber(output._value.toString())
-  const value = bigNumberValue.shiftedBy(-18).decimalPlaces(2).toNumber()
+  const value = bigNumberValue.shiftedBy(-1 * decimals).decimalPlaces(2).toNumber()
 
   return value
 }
@@ -245,6 +245,8 @@ async function sendMessage(flowModel, params) {
 		flowModel: flowModel,
 		taskHistory: []
 	}
+
+  console.log(message)
 
 	let snsParams = {
 	  Message: JSON.stringify(message),
