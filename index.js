@@ -246,7 +246,7 @@ async function sendMessage(flowModel, params) {
 		taskHistory: []
 	}
 
-  console.log(message)
+  // console.log(message)
 
 	let snsParams = {
 	  Message: JSON.stringify(message),
