@@ -175,6 +175,12 @@ async function sendSNSMessage(topic, params) {
 	return res
 }
 
+module.exports.handleRetweet = async (params) => {
+	let res = await sendSNSMessage('retweet-tweet', params)
+
+	return res
+}
+
 module.exports.handleTransferEvent = async (params) => {
 	let res = await sendSNSMessage('handle-transfer-event', params)
 

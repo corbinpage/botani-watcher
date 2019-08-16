@@ -7,6 +7,7 @@ const AWS = require('aws-sdk')
 const {
   getAddressForSymbol,
   getTransferAmountFromLogs,
+  handleRetweet,
   handleTransferEvent } = require('./utils');
 
 AWS.config.update({
@@ -118,139 +119,8 @@ stream.on('tweet', function (tweet) {
   if(!isReply) {
     console.log(tweet)
 
-    triggerFlow('retweet-tweet', {
-      tweet: tweet
-    }) 
+    handleRetweet({
+      tweet: tweet 
+    })
   }
 })
-
-// --------------------------------------------
-// --------------------------------------------
-//    Trigger Flows (Legacy)
-// --------------------------------------------
-// --------------------------------------------
-
-async function triggerFlow(flowName, params) {
-	// console.log(`Flow triggered: ${flowName}`)
-	let flowModel = getFlowModel(flowName)
-
-	let res = sendMessage(flowModel, params)
-	// console.log(`Flow message sent: ${flowName}`)
-
-	return res
-}
-
-function getFlowModel(flowName) {
-	let flowModel = []
-
-	switch(flowName) {
-    case 'whale-dai-tweeting':
-      flowModel = [
-        {
-          "task_type": "whale-token-transfer-tweet",
-          "inputs": {
-            "rule": {
-              "conditions": {
-                "priority": 1,
-                "all": [
-                  { "operator": "greaterThanInclusive", "value": 50000, "fact": "amount" }
-                ]
-              },
-              "priority": 1,
-              "event": {
-                "type": "success",
-                "params": {
-                  "decision": true
-                }
-              }
-            }
-          }
-        }
-      ]
-    break;
-    case 'whale-mkr-tweeting':
-      flowModel = [
-        {
-          "task_type": "whale-token-transfer-tweet",
-          "inputs": {
-            "rule": {
-              "conditions": {
-                "priority": 1,
-                "all": [
-                  { "operator": "greaterThanInclusive", "value": 20, "fact": "amount" }
-                ]
-              },
-              "priority": 1,
-              "event": {
-                "type": "success",
-                "params": {
-                  "decision": true
-                }
-              }
-            }
-          }
-        }
-      ]
-    break;
-    case 'whale-token-transfer-tweet':
-      flowModel = [
-        {
-          "task_type": "whale-token-transfer-tweet",
-          "inputs": {
-            "rule": {
-              "conditions": {
-                "priority": 1,
-                "all": [
-                  { "operator": "greaterThanInclusive", "value": 20, "fact": "amount" }
-                ]
-              },
-              "priority": 1,
-              "event": {
-                "type": "success",
-                "params": {
-                  "decision": true
-                }
-              }
-            }
-          }
-        }
-      ]
-    break;
-		case 'retweet-tweet':
-      flowModel = [
-        {
-          "task_type": "retweet-tweet",
-          "inputs": {}
-        }
-      ]
-		break;
-
-		default:
-
-	}
-
-	return flowModel
-}
-
-async function sendMessage(flowModel, params) {
-	const sns = new AWS.SNS(
-    {apiVersion: '2010-03-31'}
-  )
-  const queueArn = `arn:aws:sns:us-east-1:061031305521:${flowModel[0]["task_type"]}`
-	const message = {
-		params: params,
-		flowModel: flowModel,
-		taskHistory: []
-	}
-
-  // console.log(message)
-
-	let snsParams = {
-	  Message: JSON.stringify(message),
-	  TopicArn: queueArn
-	}
-
-	var res = await sns.publish(snsParams).promise()
-
-	return res
-}
