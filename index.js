@@ -253,7 +253,7 @@ async function sendMessage(flowModel, params) {
 	  TopicArn: queueArn
 	}
 
-	var res = await sns.publish(snsParams).promise()
+	// var res = await sns.publish(snsParams).promise()
 
-	return res
+	// return res
 }
