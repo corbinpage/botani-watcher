@@ -1,58 +1,62 @@
-const Web3 = require("web3")
-const web3 = new Web3()
+
 const Dagger = require("eth-dagger")
 const BigNumber = require("bignumber.js")
 const express = require('express');
 const Twit = require("twit");
-
 const AWS = require('aws-sdk')
+const {
+  getAddressForSymbol,
+  getTransferAmountFromLogs,
+  handleTransferEvent } = require('./utils');
 
 AWS.config.update({
   region: 'us-east-1',
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
 })
-
 const host = process.env.HOST || '0.0.0.0'
 const port = process.env.PORT || 8000
 
-// connect to Dagger ETH main network (network id: 1) over web socket
-const options = [{ host: host, port: port }]
-
-// dagger server
-const dagger = new Dagger(
-  "wss://mainnet.dagger.matic.network", 
-  options
-) 
-
-// Twitter Client
-const T = new Twit({
-  consumer_key: process.env.TWITTER_CONSUMER_KEY,
-  consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
-  access_token: process.env.TWITTER_ACCESS_TOKEN,
-  access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
-})
+// --------------------------------------------
+// --------------------------------------------
+//    Need to run a basic server for Heroku
+// --------------------------------------------
+// --------------------------------------------
 
 const server = express()
   .use((req, res) => res.send('Hello World!') )
   .listen(port, () => console.log(`HTTP listening on ${ port }`));
 
-const DAIAddress = '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359'
-const MKRAddress = '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2'
-const USDCAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
-const GNTAddress = '0xa74476443119a942de498590fe1f2454d7d4ac0d'
+// --------------------------------------------
+// --------------------------------------------
+//   Watch for transfer actions & then handle
+// --------------------------------------------
+// --------------------------------------------
+
+const options = [{ host: host, port: port }]
+const dagger = new Dagger(
+  "wss://mainnet.dagger.matic.network", 
+  options
+) 
+
+const DAIAddress = getAddressForSymbol('DAI')
+const MKRAddress = getAddressForSymbol('MKR')
+const USDCAddress = getAddressForSymbol('USDC')
+const GNTAddress = getAddressForSymbol('GNT')
 const transferTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
 
 // Listen for every DAI token transfer occurs
 dagger.on(`confirmed:log/${DAIAddress}/filter/${transferTopic}/#`, result => {
   const tokenSymbol = 'DAI'
   const tokenAmount = getTransferAmountFromLogs(result)
-  console.log(`Amount: ${tokenAmount} ${tokenSymbol}`)
+  const transactionHash = result.transactionHash
 
-  triggerFlow('whale-dai-tweeting', {
+  console.log(`Transfer: ${tokenAmount} ${tokenSymbol}`)
+
+  handleTransferEvent({
     amount: tokenAmount,
     tokenSymbol: tokenSymbol,
-    transactionHash: result.transactionHash
+    transactionHash: transactionHash    
   })
 })
 
@@ -60,12 +64,14 @@ dagger.on(`confirmed:log/${DAIAddress}/filter/${transferTopic}/#`, result => {
 dagger.on(`confirmed:log/${MKRAddress}/filter/${transferTopic}/#`, result => {
   const tokenSymbol = 'MKR'
   const tokenAmount = getTransferAmountFromLogs(result)
-  console.log(`Amount: ${tokenAmount} ${tokenSymbol}`)
+  const transactionHash = result.transactionHash
 
-  triggerFlow('whale-mkr-tweeting', {
+  console.log(`Transfer: ${tokenAmount} ${tokenSymbol}`)
+
+  handleTransferEvent({
     amount: tokenAmount,
     tokenSymbol: tokenSymbol,
-    transactionHash: result.transactionHash
+    transactionHash: transactionHash    
   })
 })
 
@@ -73,13 +79,28 @@ dagger.on(`confirmed:log/${MKRAddress}/filter/${transferTopic}/#`, result => {
 dagger.on(`confirmed:log/${USDCAddress}/filter/${transferTopic}/#`, result => {
   const tokenSymbol = 'USDC'
   const tokenAmount = getTransferAmountFromLogs(result, 6)
-  console.log(`Amount: ${tokenAmount} ${tokenSymbol}`)
+  const transactionHash = result.transactionHash
 
-  triggerFlow('whale-token-transfer-tweet', {
+  console.log(`Transfer: ${tokenAmount} ${tokenSymbol}`)
+
+  handleTransferEvent({
     amount: tokenAmount,
     tokenSymbol: tokenSymbol,
-    transactionHash: result.transactionHash
+    transactionHash: transactionHash    
   })
+})
+
+// --------------------------------------------
+// --------------------------------------------
+//    Retweet tweets from relevant accounts
+// --------------------------------------------
+// --------------------------------------------
+
+const T = new Twit({
+  consumer_key: process.env.TWITTER_CONSUMER_KEY,
+  consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+  access_token: process.env.TWITTER_ACCESS_TOKEN,
+  access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
 })
 
 let compoundBotUserId = '1067343515854622720'
@@ -103,35 +124,11 @@ stream.on('tweet', function (tweet) {
   }
 })
 
-function getTransferAmountFromLogs(logData, decimals=18) {
-  const inputs = [
-    {
-      indexed: true,
-      name: '_from',
-      type: 'address'
-    },
-    {
-      indexed: true,
-      name: '_to',
-      type: 'address'
-    },
-    {
-      indexed: false,
-      name: '_value',
-      type: 'uint256'
-    }
-  ]
-  const hexString = logData.data
-  const topics = logData.topics
-  topics.shift()
-
-  const output = web3.eth.abi.decodeLog(inputs, hexString, topics)
-
-  const bigNumberValue = new BigNumber(output._value.toString())
-  const value = bigNumberValue.shiftedBy(-1 * decimals).decimalPlaces(2).toNumber()
-
-  return value
-}
+// --------------------------------------------
+// --------------------------------------------
+//    Trigger Flows (Legacy)
+// --------------------------------------------
+// --------------------------------------------
 
 async function triggerFlow(flowName, params) {
 	// console.log(`Flow triggered: ${flowName}`)
@@ -253,7 +250,7 @@ async function sendMessage(flowModel, params) {
 	  TopicArn: queueArn
 	}
 
-	// var res = await sns.publish(snsParams).promise()
+	var res = await sns.publish(snsParams).promise()
 
-	// return res
+	return res
 }

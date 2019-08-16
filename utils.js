@@ -1,6 +1,38 @@
+const Web3 = require("web3")
+const web3 = new Web3()
 const BigNumber = require("bignumber.js")
 const AWS = require('aws-sdk');
 AWS.config.update({region: 'us-east-1'});
+
+module.exports.getTransferAmountFromLogs = (logData, decimals=18) => {
+  const inputs = [
+    {
+      indexed: true,
+      name: '_from',
+      type: 'address'
+    },
+    {
+      indexed: true,
+      name: '_to',
+      type: 'address'
+    },
+    {
+      indexed: false,
+      name: '_value',
+      type: 'uint256'
+    }
+  ]
+  const hexString = logData.data
+  const topics = logData.topics
+  topics.shift()
+
+  const output = web3.eth.abi.decodeLog(inputs, hexString, topics)
+
+  const bigNumberValue = new BigNumber(output._value.toString())
+  const value = bigNumberValue.shiftedBy(-1 * decimals).decimalPlaces(2).toNumber()
+
+  return value
+}
 
 module.exports.adjustTokenAmount = (amount_str, dec=18) => {
 	const bigNumberValue = new BigNumber(amount_str.toString())
@@ -139,6 +171,12 @@ async function sendSNSMessage(topic, params) {
 	}
 
 	var res = await sns.publish(snsParams).promise()
+
+	return res
+}
+
+module.exports.handleTransferEvent = async (params) => {
+	let res = await sendSNSMessage('handle-transfer-event', params)
 
 	return res
 }
