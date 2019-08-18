@@ -62,19 +62,19 @@ dagger.on(`confirmed:log/${DAIAddress}/filter/${transferTopic}/#`, result => {
 })
 
 // Listen for every MKR token transfer occurs
-// dagger.on(`confirmed:log/${MKRAddress}/filter/${transferTopic}/#`, result => {
-//   const tokenSymbol = 'MKR'
-//   const tokenAmount = getTransferAmountFromLogs(result)
-//   const transactionHash = result.transactionHash
+dagger.on(`confirmed:log/${MKRAddress}/filter/${transferTopic}/#`, result => {
+  const tokenSymbol = 'MKR'
+  const tokenAmount = getTransferAmountFromLogs(result)
+  const transactionHash = result.transactionHash
 
-//   console.log(`Transfer: ${tokenAmount} ${tokenSymbol}`)
+  console.log(`Transfer: ${tokenAmount} ${tokenSymbol}`)
 
-//   handleTransferEvent({
-//     amount: tokenAmount,
-//     tokenSymbol: tokenSymbol,
-//     transactionHash: transactionHash    
-//   })
-// })
+  handleTransferEvent({
+    amount: tokenAmount,
+    tokenSymbol: tokenSymbol,
+    transactionHash: transactionHash    
+  })
+})
 
 // Listen for every USDC token transfer occurs
 dagger.on(`confirmed:log/${USDCAddress}/filter/${transferTopic}/#`, result => {
