@@ -61,7 +61,8 @@ module.exports.formatAmount = (amount, isCurrency=false) => {
 module.exports.getAddressForSymbol = (tokenSymbol='DAI') => {
 	let address = '0x'
 	const MKRAddress = '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2'
-	const DAIAddress = '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359'
+	const SAIAddress = '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359'
+	const DAIAddress = '0x6b175474e89094c44da98b954eedeac495271d0f'
 	const USDCAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
 	const GNTAddress = '0xa74476443119a942de498590fe1f2454d7d4ac0d'
 	const transferTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
@@ -69,6 +70,9 @@ module.exports.getAddressForSymbol = (tokenSymbol='DAI') => {
 	switch(tokenSymbol) {
 		case 'MKR':
 			address = MKRAddress
+		break
+		case 'SAI':
+			address = SAIAddress
 		break
 		case 'DAI':
 			address = DAIAddress

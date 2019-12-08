@@ -46,6 +46,21 @@ const USDCAddress = getAddressForSymbol('USDC')
 const GNTAddress = getAddressForSymbol('GNT')
 const transferTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
 
+// Listen for every SAI token transfer occurs
+dagger.on(`confirmed:log/${SAIAddress}/filter/${transferTopic}/#`, result => {
+  const tokenSymbol = 'SAI'
+  const tokenAmount = getTransferAmountFromLogs(result)
+  const transactionHash = result.transactionHash
+
+  console.log(`Transfer: ${tokenAmount} ${tokenSymbol}`)
+
+  handleTransferEvent({
+    amount: tokenAmount,
+    tokenSymbol: tokenSymbol,
+    transactionHash: transactionHash    
+  })
+})
+
 // Listen for every DAI token transfer occurs
 dagger.on(`confirmed:log/${DAIAddress}/filter/${transferTopic}/#`, result => {
   const tokenSymbol = 'DAI'
@@ -109,18 +124,18 @@ let makerBotUserId = '1020011875642245120'
 let andrewYangUserId = '2228878592'
 
 // Listen for @CompoundBot tweets
-var stream = T.stream('statuses/filter', {
-  follow: [compoundBotUserId, makerBotUserId]
-})
+// var stream = T.stream('statuses/filter', {
+//   follow: [compoundBotUserId, makerBotUserId]
+// })
 
-stream.on('tweet', function (tweet) {
-  let isReply = !!tweet.in_reply_to_status_id_str
+// stream.on('tweet', function (tweet) {
+//   let isReply = !!tweet.in_reply_to_status_id_str
 
-  if(!isReply) {
-    console.log(tweet)
+//   if(!isReply) {
+//     console.log(tweet)
 
-    handleRetweet({
-      tweet: tweet 
-    })
-  }
-})
+//     handleRetweet({
+//       tweet: tweet 
+//     })
+//   }
+// })
