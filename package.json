@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/corbinpage/botani-watcher#readme",
   "dependencies": {
-    "aws-sdk": "^2.511.0",
+    "aws-sdk": "^2.814.0",
     "bignumber.js": "^9.0.0",
     "eth-dagger": "0.0.5",
     "path": "^0.12.7",
